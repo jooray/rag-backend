@@ -60,3 +60,6 @@ pinecone_cache/
 *.bin
 *.safetensors
 models/
+
+# data
+data/
