@@ -17,10 +17,18 @@ class VectorDBService:
         self.data_dir = Path(data_dir)
         self.persist_directory = self.data_dir / ".chroma_db"
 
-        self.embeddings = OllamaEmbeddings(
-            model=config.embedding_model,
-            base_url=config.ollama_base_url,
-        )
+        # Initialize embeddings with better error handling
+        try:
+            self.embeddings = OllamaEmbeddings(
+                model=config.embedding_model,
+                base_url=config.ollama_base_url,
+            )
+            # Test the embedding model with a simple query
+            test_result = self.embeddings.embed_query("test")
+            print(f"✓ Embedding model '{config.embedding_model}' initialized successfully")
+        except Exception as e:
+            print(f"✗ Failed to initialize embedding model '{config.embedding_model}': {e}")
+            raise RuntimeError(f"Embedding model initialization failed: {e}")
 
         self.text_splitter = RecursiveCharacterTextSplitter(
             chunk_size=config.chunk_size, chunk_overlap=config.chunk_overlap

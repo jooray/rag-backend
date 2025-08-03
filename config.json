@@ -3,7 +3,7 @@
   "data_directory": "data",
   "vector_db_config": {
     "collection_name": "rag_documents",
-    "embedding_model": "mxbai-embed-large",
+    "embedding_model": "snowflake-arctic-embed",
     "ollama_base_url": "http://localhost:11434",
     "chunk_size": 500,
     "chunk_overlap": 50,
