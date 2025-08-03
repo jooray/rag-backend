@@ -63,3 +63,5 @@ models/
 
 # data
 data/
+
+config-*json
