@@ -56,11 +56,6 @@ coverage/
 chroma_db/
 pinecone_cache/
 
-# Model files
-*.bin
-*.safetensors
-models/
-
 # data
 data/
 
