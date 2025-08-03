@@ -1,7 +1,7 @@
-from typing import Optional, Tuple, Dict
+from typing import Optional, Tuple, Dict, List
 
 from langchain_openai import ChatOpenAI
-from langchain_core.messages import SystemMessage, HumanMessage
+from langchain_core.messages import SystemMessage, HumanMessage, AIMessage, BaseMessage
 
 from ..models.config import (
     PipelineConfig,
@@ -14,11 +14,11 @@ from ..models.config import (
 
 
 class PipelineService:
-    def __init__(self, config: PipelineConfig, models: Dict[str, ModelConfig], api_key: str):
+    def __init__(self, config: PipelineConfig, models: Dict[str, ModelConfig], api_key: str, api_base: str):
         self.config = config
         self.models = models
         self.api_key = api_key
-        self.api_base = "https://api.venice.ai/api/v1"
+        self.api_base = api_base
 
     def _get_model_config(self, model_id: str) -> ModelConfig:
         if model_id not in self.models:
@@ -34,6 +34,44 @@ class PipelineService:
             openai_api_key=self.api_key,
             openai_api_base=self.api_base,
         )
+
+    def _convert_messages_to_langchain(self, messages: List[Dict[str, str]]) -> List[BaseMessage]:
+        """Convert OpenAI format messages to LangChain format"""
+        langchain_messages = []
+        for msg in messages:
+            role = msg.get("role")
+            content = msg.get("content", "")
+
+            if role == "system":
+                langchain_messages.append(SystemMessage(content=content))
+            elif role == "user":
+                langchain_messages.append(HumanMessage(content=content))
+            elif role == "assistant":
+                langchain_messages.append(AIMessage(content=content))
+
+        return langchain_messages
+
+    def _run_prompt_with_history(self, prompt_config: PromptConfig, messages: List[Dict[str, str]], **kwargs) -> str:
+        """Run prompt with conversation history for main inference"""
+        llm = self._get_llm(prompt_config.model)
+
+        # Convert conversation history to LangChain format
+        conversation_messages = self._convert_messages_to_langchain(messages[:-1])  # All but last message
+
+        # Add system prompt
+        system_message = SystemMessage(content=prompt_config.system_prompt)
+        all_messages = [system_message] + conversation_messages
+
+        # Format the last user message with context
+        last_user_message = messages[-1]
+        user_content = prompt_config.user_prompt_template.format(
+            question=last_user_message.get("content", ""),
+            **kwargs
+        )
+        all_messages.append(HumanMessage(content=user_content))
+
+        response = llm.invoke(all_messages)
+        return response.content
 
     def _run_prompt(self, prompt_config: PromptConfig, **kwargs) -> str:
         llm = self._get_llm(prompt_config.model)
@@ -90,9 +128,10 @@ class PipelineService:
 
         return llm.invoke([system_message, user_message]).content
 
-    def run_pipeline(self, question: str, context: str) -> str:
-        response = self._run_prompt(
-            self.config.main_prompt, question=question, context=context
+    def run_pipeline(self, messages: List[Dict[str, str]], context: str) -> str:
+        # Use conversation history for main prompt
+        response = self._run_prompt_with_history(
+            self.config.main_prompt, messages, context=context
         )
 
         for attempt in range(self.config.max_retries):

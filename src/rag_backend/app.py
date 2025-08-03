@@ -32,7 +32,8 @@ def create_app(config_path: str = "config.json", reindex: bool = False) -> Flask
     pipeline = PipelineService(
         config=config.pipeline_config,
         models=config.models,
-        api_key=os.getenv("VENICE_API_KEY")
+        api_key=os.getenv("VENICE_API_KEY"),
+        api_base=config.venice_api_base
     )
 
     init_services(vector_db, pipeline)
@@ -105,7 +106,8 @@ def main():
     pipeline = PipelineService(
         config=config.pipeline_config,
         models=config.models,
-        api_key=os.getenv("VENICE_API_KEY")
+        api_key=os.getenv("VENICE_API_KEY"),
+        api_base=config.venice_api_base
     )
 
     init_services(vector_db, pipeline)

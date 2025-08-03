@@ -66,7 +66,7 @@ def chat_completions():
 
         context = vector_db_service.get_context(question)
 
-        response_text = pipeline_service.run_pipeline(question, context)
+        response_text = pipeline_service.run_pipeline(messages, context)
 
         if stream:
             return create_stream_response(response_text, data)
