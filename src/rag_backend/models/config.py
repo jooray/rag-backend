@@ -57,6 +57,9 @@ class VectorDBConfig(BaseModel):
     chunk_size: int = Field(default=500)
     chunk_overlap: int = Field(default=50)
     top_k: int = Field(default=5)
+    use_mmr: bool = Field(default=False, description="Use Maximal Marginal Relevance for diverse results")
+    mmr_fetch_k: int = Field(default=10, description="Number of documents to fetch before MMR reranking")
+    mmr_lambda: float = Field(default=0.5, ge=0.0, le=1.0, description="MMR lambda parameter (0=diversity, 1=relevance)")
 
 
 class CORSConfig(BaseModel):

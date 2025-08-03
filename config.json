@@ -3,11 +3,14 @@
   "data_directory": "data",
   "vector_db_config": {
     "collection_name": "rag_documents",
-    "embedding_model": "snowflake-arctic-embed",
+    "embedding_model": "mxbai-embed-large",
     "ollama_base_url": "http://localhost:11434",
     "chunk_size": 500,
     "chunk_overlap": 50,
-    "top_k": 5
+    "top_k": 5,
+    "use_mmr": true,
+    "mmr_fetch_k": 15,
+    "mmr_lambda": 0.7
   },
   "server_config": {
     "host": "0.0.0.0",

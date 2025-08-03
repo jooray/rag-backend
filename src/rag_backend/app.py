@@ -71,6 +71,9 @@ def main():
     parser.add_argument("--cors-method", action="append", help="Add allowed CORS HTTP method (can be specified multiple times)")
     parser.add_argument("--cors-header", action="append", help="Add allowed CORS header (can be specified multiple times)")
     parser.add_argument("--cors-credentials", action="store_true", help="Allow credentials in CORS requests")
+    parser.add_argument("--mmr", action="store_true", help="Enable MMR search")
+    parser.add_argument("--no-mmr", action="store_true", help="Disable MMR search")
+    parser.add_argument("--mmr-lambda", type=float, help="MMR lambda parameter (0=diversity, 1=relevance)")
 
     args = parser.parse_args()
 
@@ -96,6 +99,14 @@ def main():
         config.server_config.cors.headers = args.cors_header
     if args.cors_credentials:
         config.server_config.cors.supports_credentials = True
+
+    # Handle MMR CLI overrides
+    if args.mmr:
+        config.vector_db_config.use_mmr = True
+    if args.no_mmr:
+        config.vector_db_config.use_mmr = False
+    if args.mmr_lambda is not None:
+        config.vector_db_config.mmr_lambda = args.mmr_lambda
 
     vector_db = VectorDBService(
         config=config.vector_db_config,

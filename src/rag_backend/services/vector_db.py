@@ -17,18 +17,10 @@ class VectorDBService:
         self.data_dir = Path(data_dir)
         self.persist_directory = self.data_dir / ".chroma_db"
 
-        # Initialize embeddings with better error handling
-        try:
-            self.embeddings = OllamaEmbeddings(
-                model=config.embedding_model,
-                base_url=config.ollama_base_url,
-            )
-            # Test the embedding model with a simple query
-            test_result = self.embeddings.embed_query("test")
-            print(f"✓ Embedding model '{config.embedding_model}' initialized successfully")
-        except Exception as e:
-            print(f"✗ Failed to initialize embedding model '{config.embedding_model}': {e}")
-            raise RuntimeError(f"Embedding model initialization failed: {e}")
+        self.embeddings = OllamaEmbeddings(
+            model=config.embedding_model,
+            base_url=config.ollama_base_url,
+        )
 
         self.text_splitter = RecursiveCharacterTextSplitter(
             chunk_size=config.chunk_size, chunk_overlap=config.chunk_overlap
@@ -105,6 +97,34 @@ class VectorDBService:
                 self.qa_pairs = pickle.load(f)
 
     def search(self, query: str) -> List[Document]:
+        if not self.vectorstore:
+            return []
+
+        if self.config.use_mmr:
+            return self.vectorstore.max_marginal_relevance_search(
+                query,
+                k=self.config.top_k,
+                fetch_k=self.config.mmr_fetch_k,
+                lambda_mult=self.config.mmr_lambda
+            )
+        else:
+            return self.vectorstore.similarity_search(query, k=self.config.top_k)
+
+    def search_mmr(self, query: str, lambda_mult: float = None) -> List[Document]:
+        """Search using MMR regardless of config setting"""
+        if not self.vectorstore:
+            return []
+
+        lambda_val = lambda_mult if lambda_mult is not None else self.config.mmr_lambda
+        return self.vectorstore.max_marginal_relevance_search(
+            query,
+            k=self.config.top_k,
+            fetch_k=self.config.mmr_fetch_k,
+            lambda_mult=lambda_val
+        )
+
+    def search_similarity(self, query: str) -> List[Document]:
+        """Search using basic similarity regardless of config setting"""
         if not self.vectorstore:
             return []
 
