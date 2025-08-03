@@ -1,0 +1,37 @@
+[project]
+name = "rag-backend"
+version = "0.1.0"
+description = "OpenAI-compatible API with RAG and filtering pipeline"
+authors = [
+    {name = "Juraj Bednar",email = "juraj@bednar.io"}
+]
+readme = "README.md"
+requires-python = ">=3.11,<4.0"
+dependencies = [
+    "flask (>=3.1.1,<4.0.0)",
+    "langchain (>=0.3.27,<0.4.0)",
+    "langchain-openai (>=0.3.28,<0.4.0)",
+    "langchain-community (>=0.3.27,<0.4.0)",
+    "langchain-ollama (>=0.3.0,<0.4.0)",
+    "chromadb (>=1.0.15,<2.0.0)",
+    "python-dotenv (>=1.1.1,<2.0.0)",
+    "pydantic (>=2.11.7,<3.0.0)",
+    "flask-cors (>=6.0.1,<7.0.0)",
+    "types-flask-cors (>=6.0.0.20250520,<7.0.0.0)",
+    "langchain-chroma (>=0.2.5,<0.3.0)"
+]
+
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.4.1"
+pytest-cov = "^6.2.1"
+mypy = "^1.17.1"
+black = "^25.1.0"
+ruff = "^0.12.7"
+types-flask-cors = "^6.0.0.20250520"
+flask-cors = "^6.0.1"
+
