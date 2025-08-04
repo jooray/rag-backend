@@ -7,11 +7,8 @@ from flask_cors import CORS
 from dotenv import load_dotenv
 
 from .models.config import Config
-from .services.vector_db import VectorDBService
-from .services.pipeline import PipelineService
-from .api.completions import api_bp, init_services
-
-
+from .services.config_manager import ConfigurationManager
+from .api.completions import api_bp, init_configuration_manager
 def create_app(config_path: str = "config.json", reindex: bool = False) -> Flask:
     load_dotenv()
 
@@ -23,20 +20,14 @@ def create_app(config_path: str = "config.json", reindex: bool = False) -> Flask
 
     config = Config(**config_dict)
 
-    vector_db = VectorDBService(
-        config=config.vector_db_config,
-        data_dir=config.data_directory,
-    )
-    vector_db.load_or_create_index(reindex=reindex)
-
-    pipeline = PipelineService(
-        config=config.pipeline_config,
-        models=config.models,
+    # Initialize configuration manager with all configurations
+    config_manager = ConfigurationManager(
+        config=config,
         api_key=os.getenv("VENICE_API_KEY"),
-        api_base=config.venice_api_base
+        reindex=reindex
     )
 
-    init_services(vector_db, pipeline)
+    init_configuration_manager(config_manager)
 
     app = Flask(__name__)
     app.register_blueprint(api_bp)
@@ -77,6 +68,11 @@ def main():
 
     args = parser.parse_args()
 
+    load_dotenv()
+
+    if not os.getenv("VENICE_API_KEY"):
+        raise ValueError("VENICE_API_KEY environment variable is required")
+
     # Load config file
     with open(args.config, "r") as f:
         config_dict = json.load(f)
@@ -100,28 +96,24 @@ def main():
     if args.cors_credentials:
         config.server_config.cors.supports_credentials = True
 
-    # Handle MMR CLI overrides
-    if args.mmr:
-        config.vector_db_config.use_mmr = True
-    if args.no_mmr:
-        config.vector_db_config.use_mmr = False
-    if args.mmr_lambda is not None:
-        config.vector_db_config.mmr_lambda = args.mmr_lambda
+    # Handle MMR CLI overrides for all configurations
+    if args.mmr or args.no_mmr or args.mmr_lambda is not None:
+        for config_entry in config.configurations.values():
+            if args.mmr:
+                config_entry.vector_db_config.use_mmr = True
+            if args.no_mmr:
+                config_entry.vector_db_config.use_mmr = False
+            if args.mmr_lambda is not None:
+                config_entry.vector_db_config.mmr_lambda = args.mmr_lambda
 
-    vector_db = VectorDBService(
-        config=config.vector_db_config,
-        data_dir=config.data_directory,
-    )
-    vector_db.load_or_create_index(reindex=args.reindex)
-
-    pipeline = PipelineService(
-        config=config.pipeline_config,
-        models=config.models,
+    # Initialize configuration manager
+    config_manager = ConfigurationManager(
+        config=config,
         api_key=os.getenv("VENICE_API_KEY"),
-        api_base=config.venice_api_base
+        reindex=args.reindex
     )
 
-    init_services(vector_db, pipeline)
+    init_configuration_manager(config_manager)
 
     app = Flask(__name__)
     app.register_blueprint(api_bp)

@@ -76,13 +76,19 @@ class ServerConfig(BaseModel):
     cors: CORSConfig = Field(default_factory=CORSConfig, description="CORS configuration")
 
 
+class ConfigurationEntry(BaseModel):
+    """Configuration entry for a specific model/configuration"""
+    data_directory: str = Field(default="data", description="Directory containing data files")
+    vector_db_config: VectorDBConfig = Field(description="Vector database configuration")
+    pipeline_config: PipelineConfig = Field(description="Pipeline configuration")
+
+
 class Config(BaseModel):
+    # Global settings
     venice_api_base: str = Field(default="https://api.venice.ai/api/v1")
-    data_directory: str = Field(default="data")
-    vector_db_config: VectorDBConfig
-    pipeline_config: PipelineConfig
     server_config: ServerConfig = Field(default_factory=ServerConfig)
     models: Dict[str, ModelConfig] = Field(default_factory=dict)
 
-
+    # Individual configurations by model name
+    configurations: Dict[str, ConfigurationEntry] = Field(default_factory=dict, description="Model-specific configurations")
 GatePromptConfig.model_rebuild()

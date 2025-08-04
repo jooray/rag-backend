@@ -1,17 +1,5 @@
 {
   "venice_api_base": "https://api.venice.ai/api/v1",
-  "data_directory": "data",
-  "vector_db_config": {
-    "collection_name": "rag_documents",
-    "embedding_model": "mxbai-embed-large",
-    "ollama_base_url": "http://localhost:11434",
-    "chunk_size": 500,
-    "chunk_overlap": 50,
-    "top_k": 5,
-    "use_mmr": true,
-    "mmr_fetch_k": 15,
-    "mmr_lambda": 0.7
-  },
   "server_config": {
     "host": "0.0.0.0",
     "port": 8080,
@@ -22,35 +10,6 @@
       "headers": ["Content-Type", "Authorization", "X-Requested-With"],
       "supports_credentials": false
     }
-  },
-  "pipeline_config": {
-    "main_prompt": {
-      "system_prompt": "You are a helpful assistant that answers questions based on the provided context and general knowledge. Be accurate and cite information from the context when relevant. Do not mention the existence of the context in your response, just use it.",
-      "user_prompt_template": "Context:\n{context}\n\nQuestion: {question}\n\nPlease provide a comprehensive answer based on the context above.",
-      "model": "very-large"
-    },
-    "gate_prompts": [
-      {
-        "name": "factuality_check",
-        "system_prompt": "You are a fact-checker. Review the response and determine if it contains any factual errors or unsupported claims. Respond with 'PASS' if the response is factually accurate, or 'REJECT: [reason]' if there are issues.",
-        "user_prompt_template": "Review this response for factual accuracy:\n\n{response}",
-        "model": "small",
-        "fix_prompt": {
-          "system_prompt": "You are an editor that fixes factual errors in responses. Correct the issues while maintaining the overall message.",
-          "user_prompt_template": "Original response:\n{response}\n\nIssue identified:\n{reject_reason}\n\nPlease provide a corrected version that addresses this issue.",
-          "model": "very-large"
-        }
-      }
-    ],
-    "rewrite_prompts": [
-      {
-        "name": "conciseness",
-        "system_prompt": "You are an editor that makes responses more concise without losing important information.",
-        "user_prompt_template": "Make this response more concise if too verbose. Do not include anything else than rewritten response:\n\n{response}",
-        "model": "small"
-      }
-    ],
-    "max_retries": 2
   },
   "models": {
     "large": {
@@ -67,6 +26,51 @@
       "name": "venice-uncensored",
       "temperature": 0.7,
       "max_tokens": 2000
+    }
+  },
+  "configurations": {
+    "default": {
+      "data_directory": "data",
+      "vector_db_config": {
+        "collection_name": "rag_documents",
+        "embedding_model": "mxbai-embed-large",
+        "ollama_base_url": "http://localhost:11434",
+        "chunk_size": 500,
+        "chunk_overlap": 50,
+        "top_k": 5,
+        "use_mmr": true,
+        "mmr_fetch_k": 15,
+        "mmr_lambda": 0.7
+      },
+      "pipeline_config": {
+        "main_prompt": {
+          "system_prompt": "You are a helpful assistant that answers questions based on the provided context and general knowledge. Be accurate and cite information from the context when relevant. Do not mention the existence of the context in your response, just use it.",
+          "user_prompt_template": "Context:\n{context}\n\nQuestion: {question}\n\nPlease provide a comprehensive answer based on the context above.",
+          "model": "very-large"
+        },
+        "gate_prompts": [
+          {
+            "name": "factuality_check",
+            "system_prompt": "You are a fact-checker. Review the response and determine if it contains any factual errors or unsupported claims. Respond with 'PASS' if the response is factually accurate, or 'REJECT: [reason]' if there are issues.",
+            "user_prompt_template": "Review this response for factual accuracy:\n\n{response}",
+            "model": "small",
+            "fix_prompt": {
+              "system_prompt": "You are an editor that fixes factual errors in responses. Correct the issues while maintaining the overall message.",
+              "user_prompt_template": "Original response:\n{response}\n\nIssue identified:\n{reject_reason}\n\nPlease provide a corrected version that addresses this issue.",
+              "model": "very-large"
+            }
+          }
+        ],
+        "rewrite_prompts": [
+          {
+            "name": "conciseness",
+            "system_prompt": "You are an editor that makes responses more concise without losing important information.",
+            "user_prompt_template": "Make this response more concise if too verbose. Do not include anything else than rewritten response:\n\n{response}",
+            "model": "small"
+          }
+        ],
+        "max_retries": 2
+      }
     }
   }
 }

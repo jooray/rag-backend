@@ -5,20 +5,17 @@ import json
 import time
 import uuid
 
-from ..services.vector_db import VectorDBService
-from ..services.pipeline import PipelineService
+from ..services.config_manager import ConfigurationManager
 
 
 api_bp = Blueprint("api", __name__)
 
-vector_db_service: Optional[VectorDBService] = None
-pipeline_service: Optional[PipelineService] = None
+configuration_manager: Optional[ConfigurationManager] = None
 
 
-def init_services(vector_db: VectorDBService, pipeline: PipelineService):
-    global vector_db_service, pipeline_service
-    vector_db_service = vector_db
-    pipeline_service = pipeline
+def init_configuration_manager(config_manager: ConfigurationManager):
+    global configuration_manager
+    configuration_manager = config_manager
 
 
 @api_bp.route("/v1/chat/completions", methods=["POST", "OPTIONS"])
@@ -32,6 +29,7 @@ def chat_completions():
 
         messages = data.get("messages", [])
         stream = data.get("stream", False)
+        model = data.get("model", "default")  # Default to "default" configuration
 
         if not messages:
             return (
@@ -41,6 +39,22 @@ def chat_completions():
                             "message": "Messages array is required",
                             "type": "invalid_request_error",
                             "code": "invalid_request",
+                        }
+                    }
+                ),
+                400,
+            )
+
+        # Check if the requested model configuration exists
+        if not configuration_manager.has_configuration(model):
+            available_models = configuration_manager.get_available_models()
+            return (
+                jsonify(
+                    {
+                        "error": {
+                            "message": f"Model '{model}' not found. Available models: {', '.join(available_models)}",
+                            "type": "invalid_request_error",
+                            "code": "model_not_found",
                         }
                     }
                 ),
@@ -64,8 +78,11 @@ def chat_completions():
 
         question = last_message.get("content", "")
 
-        context = vector_db_service.get_context(question)
+        # Get the appropriate services for the selected model
+        vector_db_service = configuration_manager.get_vector_db_service(model)
+        pipeline_service = configuration_manager.get_pipeline_service(model)
 
+        context = vector_db_service.get_context(question)
         response_text = pipeline_service.run_pipeline(messages, context)
 
         if stream:
@@ -160,16 +177,20 @@ def list_models():
     if request.method == "OPTIONS":
         return "", 200
 
+    available_models = configuration_manager.get_available_models()
+    model_data = []
+
+    for model_name in available_models:
+        model_data.append({
+            "id": model_name,
+            "object": "model",
+            "created": int(time.time()),
+            "owned_by": "rag-backend",
+        })
+
     return jsonify(
         {
             "object": "list",
-            "data": [
-                {
-                    "id": "rag-backend",
-                    "object": "model",
-                    "created": int(time.time()),
-                    "owned_by": "rag-backend",
-                }
-            ],
+            "data": model_data,
         }
     )
