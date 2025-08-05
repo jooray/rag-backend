@@ -47,6 +47,13 @@ class VectorDBService:
         documents = []
         self.qa_pairs = []
 
+        print(f"Creating index for data directory: {self.data_dir}")
+        print(f"Persist directory will be: {self.persist_directory}")
+
+        if not self.data_dir.exists():
+            print(f"Warning: Data directory {self.data_dir} does not exist")
+            self.data_dir.mkdir(parents=True, exist_ok=True)
+
         for file_path in self.data_dir.iterdir():
             if file_path.suffix == ".txt":
                 content = file_path.read_text(encoding="utf-8")
@@ -82,10 +89,20 @@ class VectorDBService:
                 collection_name=self.config.collection_name,
                 persist_directory=str(self.persist_directory),
             )
+        else:
+            # Create an empty collection if no documents found
+            self.persist_directory.mkdir(parents=True, exist_ok=True)
+            self.vectorstore = Chroma(
+                collection_name=self.config.collection_name,
+                embedding_function=self.embeddings,
+                persist_directory=str(self.persist_directory),
+            )
 
         self._save_qa_pairs()
 
     def _save_qa_pairs(self) -> None:
+        # Ensure the persist directory exists
+        self.persist_directory.mkdir(parents=True, exist_ok=True)
         qa_pairs_file = self.persist_directory / "qa_pairs.pkl"
         with open(qa_pairs_file, "wb") as f:
             pickle.dump(self.qa_pairs, f)
