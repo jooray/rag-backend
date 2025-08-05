@@ -2,6 +2,7 @@ from typing import Dict, Any, Optional
 from flask import Blueprint, request, jsonify, Response
 
 import json
+import re
 import time
 import uuid
 
@@ -135,8 +136,13 @@ def create_stream_response(content: str, original_request: Dict[str, Any]) -> Re
     model = original_request.get("model", "rag-backend")
 
     def generate():
-        words = content.split()
-        for i, word in enumerate(words):
+        # Split content while preserving whitespace by using regex
+        # Split on word boundaries but capture the separating whitespace
+        tokens = re.split(r'(\s+)', content)
+        # Filter out empty strings
+        tokens = [token for token in tokens if token]
+
+        for token in tokens:
             chunk = {
                 "id": completion_id,
                 "object": "chat.completion.chunk",
@@ -146,7 +152,7 @@ def create_stream_response(content: str, original_request: Dict[str, Any]) -> Re
                     {
                         "index": 0,
                         "delta": {
-                            "content": word + (" " if i < len(words) - 1 else "")
+                            "content": token
                         },
                         "finish_reason": None,
                     }
