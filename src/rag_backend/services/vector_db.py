@@ -56,6 +56,7 @@ class VectorDBService:
 
         for file_path in self.data_dir.iterdir():
             if file_path.suffix == ".txt":
+                print(f"Processing {file_path.name}")
                 content = file_path.read_text(encoding="utf-8")
                 docs = self.text_splitter.create_documents(
                     [content], metadatas=[{"source": file_path.name, "type": "text"}]
@@ -63,6 +64,7 @@ class VectorDBService:
                 documents.extend(docs)
 
             elif file_path.suffix == ".jsonl":
+                print(f"Processing {file_path.name}")
                 with open(file_path, "r", encoding="utf-8") as f:
                     for line in f:
                         try:
