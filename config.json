@@ -9,7 +9,8 @@
       "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
       "headers": ["Content-Type", "Authorization", "X-Requested-With"],
       "supports_credentials": false
-    }
+    },
+    "pipeline_max_workers": 4
   },
   "models": {
     "large": {

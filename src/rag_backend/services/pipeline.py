@@ -14,6 +14,7 @@ from ..models.config import (
 
 
 class PipelineService:
+    # Service is stateless across invocations (no shared mutable per-request state), safe for thread pool usage
     def __init__(self, config: PipelineConfig, models: Dict[str, ModelConfig], api_key: str, api_base: str):
         self.config = config
         self.models = models

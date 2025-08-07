@@ -74,6 +74,7 @@ class ServerConfig(BaseModel):
     port: int = Field(default=8080, ge=1, le=65535, description="Port to bind to")
     debug: bool = Field(default=False, description="Enable debug mode")
     cors: CORSConfig = Field(default_factory=CORSConfig, description="CORS configuration")
+    pipeline_max_workers: int = Field(default=4, ge=1, le=64, description="Max concurrent pipeline worker threads")
 
 
 class ConfigurationEntry(BaseModel):
