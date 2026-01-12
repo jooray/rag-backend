@@ -1,7 +1,7 @@
 from typing import Dict, Optional
 import os
 
-from ..models.config import Config, ConfigurationEntry
+from ..models.config import Config, ConfigurationEntry, QueryRewriteConfig
 from .vector_db import VectorDBService
 from .pipeline import PipelineService
 
@@ -53,3 +53,10 @@ class ConfigurationManager:
     def has_configuration(self, model_name: str) -> bool:
         """Check if a configuration exists for the given model name"""
         return model_name in self.config.configurations
+
+    def get_query_rewrite_config(self, model_name: str) -> Optional[QueryRewriteConfig]:
+        """Get query rewrite configuration for a specific model"""
+        config_entry = self.config.configurations.get(model_name)
+        if config_entry:
+            return config_entry.query_rewrite_config
+        return None

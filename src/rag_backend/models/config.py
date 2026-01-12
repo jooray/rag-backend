@@ -43,6 +43,35 @@ class RewritePromptConfig(BaseModel):
     model: str = Field(description="Model ID to use from models config")
 
 
+class QueryRewriteConfig(BaseModel):
+    """Configuration for context-aware query rewriting before vector search"""
+    enabled: bool = Field(default=True, description="Enable query rewriting")
+    system_prompt: str = Field(
+        default="""You are a search query optimizer. Your task is to transform conversational user messages into precise, keyword-rich search queries optimized for semantic vector search.
+
+Rules:
+1. Extract the core information need from the user's message
+2. Remove conversational filler ("please", "can you", "I want to know")
+3. Resolve ALL pronouns and references using the conversation history (e.g., "that", "it", "this feature", "the error")
+4. Expand abbreviations and acronyms if their meaning is clear from context
+5. Include relevant context from earlier messages when the current message is a follow-up
+6. Keep the query concise (under 50 words)
+7. Output ONLY the optimized query, nothing else""",
+        description="System prompt for query rewriting"
+    )
+    user_prompt_template: str = Field(
+        default="""Conversation history:
+{history}
+
+Current user message:
+{question}
+
+Optimized search query:""",
+        description="Template with {history} and {question} placeholders"
+    )
+    model: str = Field(description="Model ID to use from models config")
+
+
 class PipelineConfig(BaseModel):
     main_prompt: PromptConfig
     gate_prompts: List[GatePromptConfig] = Field(default_factory=list)
@@ -82,6 +111,7 @@ class ConfigurationEntry(BaseModel):
     data_directory: str = Field(default="data", description="Directory containing data files")
     vector_db_config: VectorDBConfig = Field(description="Vector database configuration")
     pipeline_config: PipelineConfig = Field(description="Pipeline configuration")
+    query_rewrite_config: Optional[QueryRewriteConfig] = Field(default=None, description="Query rewriting configuration for improved RAG search")
 
 
 class Config(BaseModel):

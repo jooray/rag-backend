@@ -10,6 +10,7 @@ from ..models.config import (
     RewritePromptConfig,
     FixPromptConfig,
     ModelConfig,
+    QueryRewriteConfig,
 )
 
 
@@ -51,6 +52,41 @@ class PipelineService:
                 langchain_messages.append(AIMessage(content=content))
 
         return langchain_messages
+
+    def _format_history_for_query_rewrite(self, messages: List[Dict[str, str]]) -> str:
+        """Format conversation history for query rewriting (excludes the last user message)"""
+        if len(messages) <= 1:
+            return "(No previous conversation)"
+
+        history_parts = []
+        for msg in messages[:-1]:
+            role = msg.get("role", "unknown")
+            content = msg.get("content", "")
+            if role == "system":
+                continue
+            history_parts.append(f"{role.capitalize()}: {content}")
+
+        return "\n".join(history_parts) if history_parts else "(No previous conversation)"
+
+    def rewrite_query(self, messages: List[Dict[str, str]], query_config: QueryRewriteConfig) -> str:
+        """Transform user message into optimized search query using conversation context"""
+        if not query_config.enabled:
+            return messages[-1].get("content", "")
+
+        llm = self._get_llm(query_config.model)
+
+        history = self._format_history_for_query_rewrite(messages)
+        question = messages[-1].get("content", "")
+
+        system_message = SystemMessage(content=query_config.system_prompt)
+        user_content = query_config.user_prompt_template.format(
+            history=history,
+            question=question
+        )
+        user_message = HumanMessage(content=user_content)
+
+        response = llm.invoke([system_message, user_message])
+        return response.content.strip()
 
     def _run_prompt_with_history(self, prompt_config: PromptConfig, messages: List[Dict[str, str]], **kwargs) -> str:
         """Run prompt with conversation history for main inference"""

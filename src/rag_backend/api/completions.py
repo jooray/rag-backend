@@ -60,11 +60,17 @@ def chat_completions():
 
         vector_db_service = configuration_manager.get_vector_db_service(model)
         pipeline_service = configuration_manager.get_pipeline_service(model)
+        query_rewrite_config = configuration_manager.get_query_rewrite_config(model)
         if vector_db_service is None or pipeline_service is None:
             return _error("Configuration services not available", 500)
 
+        # Get search query (optionally rewritten for better RAG retrieval)
+        query = last_message.get("content", "")
+        if query_rewrite_config and query_rewrite_config.enabled:
+            query = pipeline_service.rewrite_query(messages, query_rewrite_config)
+
         # Vector search (can be blocking; acceptable per requirements)
-        context = vector_db_service.get_context(last_message.get("content", ""))
+        context = vector_db_service.get_context(query)
 
         # Run pipeline concurrently so multiple requests can progress in parallel
         future = _executor.submit(pipeline_service.run_pipeline, messages, context)
