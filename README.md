@@ -15,7 +15,7 @@ An OpenAI-compatible API server with Retrieval-Augmented Generation (RAG) capabi
 
 ## Prerequisites
 
-- **Python 3.8+** with Poetry for dependency management
+- **Python 3.11+** managed by [uv](https://docs.astral.sh/uv/) (recommended)
 - **Ollama** running locally for embeddings (default: http://localhost:11434)
   - Install from: https://ollama.ai/
   - Pull the embedding model: `ollama pull mxbai-embed-large`
@@ -28,8 +28,8 @@ An OpenAI-compatible API server with Retrieval-Augmented Generation (RAG) capabi
 # Download from https://ollama.ai/ and start the service
 ollama pull mxbai-embed-large
 
-# 2. Install dependencies
-poetry install
+# 2. Install dependencies (uv will install the pinned Python version if needed)
+uv sync
 
 # 3. Set up environment
 cp .env.example .env
@@ -40,7 +40,7 @@ cp .env.example .env
 # - .jsonl files for Q&A pairs
 
 # 5. Run the server
-poetry run python -m src.rag_backend.app
+uv run python -m src.rag_backend.app
 
 # 6. Test the API with default configuration
 curl -X POST http://localhost:8080/v1/chat/completions \
@@ -54,8 +54,40 @@ curl -X POST http://localhost:8080/v1/chat/completions \
 ## Installation
 
 ```bash
-poetry install
+# Install uv if you don't have it: https://docs.astral.sh/uv/getting-started/installation/
+uv sync                  # creates .venv and installs all deps from uv.lock
+uv sync --group dev      # include dev tools (pytest, mypy, ruff, black)
 ```
+
+The Python version is pinned in `.python-version`. `uv sync` will fetch it
+automatically if it isn't already installed; you can also do this explicitly:
+
+```bash
+uv python install
+```
+
+To add or remove dependencies:
+
+```bash
+uv add <package>                   # runtime dependency
+uv add --group dev <package>       # dev dependency
+uv remove <package>
+```
+
+### Using Poetry instead
+
+Poetry 2.0+ can also install this project, since `pyproject.toml` uses the
+standard PEP 621 `[project]` table and PEP 735 `[dependency-groups]`:
+
+```bash
+poetry install
+poetry add <package>
+```
+
+**Caveat:** only `uv.lock` is committed and considered the source of truth for
+reproducible installs. Poetry will resolve fresh against the version ranges in
+`pyproject.toml` and may pick different versions than uv. If you need exact
+reproducibility, use uv.
 
 ## Multi-Configuration Support
 
@@ -207,13 +239,13 @@ Add your data files to the appropriate directories:
 ### Start the server
 
 ```bash
-poetry run python -m src.rag_backend.app
+uv run python -m src.rag_backend.app
 ```
 
 ### Command-line options
 
 ```bash
-poetry run python -m src.rag_backend.app --help
+uv run python -m src.rag_backend.app --help
 
 Options:
   --config PATH     Path to config file (default: config.json)
@@ -308,20 +340,20 @@ Each prompt can use a different model with its own temperature and token limits.
 
 ### Running tests
 ```bash
-poetry run pytest tests/
+uv run pytest tests/
 ```
 
 ### Code formatting
 ```bash
-poetry run black .
+uv run black .
 ```
 
 ### Linting
 ```bash
-poetry run ruff check .
+uv run ruff check .
 ```
 
 ### Type checking
 ```bash
-poetry run mypy src/
+uv run mypy src/
 ```
