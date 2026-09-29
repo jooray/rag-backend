@@ -2,6 +2,20 @@
 
 An OpenAI-compatible API server with Retrieval-Augmented Generation (RAG) capabilities, multi-configuration support, and a sophisticated filtering pipeline.
 
+<!-- jooray-links:start -->
+### More from me
+
+**Related projects**
+
+- [datasetgen-ng](https://github.com/jooray/datasetgen-ng): generate fine-tuning datasets from plain text
+- [eso-level-estimator-web](https://github.com/jooray/eso-level-estimator-web): static front-end for the ESO level estimator, over Nostr DMs
+- [nalgorithm](https://github.com/jooray/nalgorithm): rank your Nostr timeline by what matters to you, using an LLM
+
+**Full project showcase:** [all my projects](https://juraj.bednar.io/showcase/).
+
+I write about building things on [my blog](https://juraj.bednar.io/en/blog-en/). I also wrote a cypherpunk novel, [Tamers of Entropy](https://tamersofentropy.net/), and there is a [trailer](https://tamersofentropy.net/#trailer).
+<!-- jooray-links:end -->
+
 ## Features
 
 - **Multi-Configuration Support**: Define different data sources, pipelines, and settings for different models/use cases
