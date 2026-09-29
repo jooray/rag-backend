@@ -7,7 +7,6 @@ An OpenAI-compatible API server with Retrieval-Augmented Generation (RAG) capabi
 
 **Related projects**
 
-- [datasetgen-ng](https://github.com/jooray/datasetgen-ng): generate fine-tuning datasets from plain text
 - [eso-level-estimator-web](https://github.com/jooray/eso-level-estimator-web): static front-end for the ESO level estimator, over Nostr DMs
 - [nalgorithm](https://github.com/jooray/nalgorithm): rank your Nostr timeline by what matters to you, using an LLM
 
